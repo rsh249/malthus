@@ -13,6 +13,7 @@ wget https://datahub.io/core/nyse-other-listings/r/nyse-listed.csv #may need upd
 cat nyse-listed.csv | sed "1d" | awk -F ',' '{print $1}'  | 
 xargs -P 4 -n 1 -I {} wget --output-document "avdata/"{}".csv" "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&outputsize=full&apikey=$AV_KEY&datatype=csv&symbol="{}
 
+
 #put avdata in the hadoop file system 
 #assumes hadoop configured and accessible via hdfs
 hdfs dfs -put avdata/* avdata
