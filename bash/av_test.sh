@@ -18,4 +18,6 @@ xargs -P 4 -n 1 -I {} wget --output-document "avdata/"{}".csv" "https://www.alph
 #assumes hadoop configured and accessible via hdfs
 hdfs dfs -put avdata/* avdata
 
+# build hive table and query
+
 
