@@ -23,7 +23,7 @@ val conf = new SparkConf().setMaster("local[6]").setAppName("nyse")
 
 //read
 //val scnyse = sc.textFile("file:/projectnb2/ct-shbioinf/rharbert/malthus/avdata/*").toDF()
-val scnyse = spark.read.format("csv").option("header", "true").load("file:/projectnb2/ct-shbioinf/rharbert/malthus/avdata/*")
+val scnyse = spark.read.format("csv").option("header", "true").load("file:/projectnb2/ct-shbioinf/dan606/avdata/*")
 scnyse.count()
 
 
@@ -34,7 +34,7 @@ df.show(false)
 
 //Can we trim the path?
 val df2 = df.withColumn("split_path", split($"path", "/")).drop("path")
-val df3 = df2.selectExpr("split_path[6]", "timestamp", "open", "high", "low", "close", "adjusted_close", "volume", "dividend_amount", "split_coefficient")
+val df3 = df2.selectExpr("split_path[5]", "timestamp", "open", "high", "low", "close", "adjusted_close", "volume", "dividend_amount", "split_coefficient")
 df3.show(false) // show the contents of the data frame 
 
 // experiment with filtering
