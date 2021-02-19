@@ -1,6 +1,5 @@
 # bash code to mine the Alpha Vantage API for long term daily stock market data
-#more notes and demo code: http://cafim.sssup.it/~giulio/other/alpha_vantage/index.html
-#module load parallel  #load gnu parallel or otherwise set up access
+
 source ./av_keys # get Alpha Vantage keys from key file or set environmental variables AV_KEY and AV_STUDENT KEY
 mkdir avdata
 

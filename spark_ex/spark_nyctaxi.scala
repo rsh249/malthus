@@ -19,7 +19,7 @@ val conf = new SparkConf().setMaster("local[6]").setAppName("taxidata")
 val taxidata = spark.read.format("csv").option("header", "true").load("file:/projectnb2/ct-shbioinf/dan606/nyctaxi/trip data/*")
 taxidata.count()
 
-// FIGURE OUT HOW TO REMOVE SPACES FROM COLUMN NAMES!!
+//remove spaces from column names
 var newDf = taxidata 
 for(col <- taxidata.columns){ newDf = newDf.withColumnRenamed(col, col.replaceAll("\\s", "")) }
 val taxidata = newDf
@@ -38,7 +38,7 @@ df3.show(false) // show the contents of the data frame
 
 // experiment with filtering (directly from taxidata)
 
-val filter1 = taxidata.filter(col(" fare_amount") >= 1000) // mostly junk data?
+val filter1 = taxidata.filter(col("fare_amount") >= 1000) // mostly junk data?
 filter1.show(false)
 filter1.count() 
 
