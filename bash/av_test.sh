@@ -10,7 +10,7 @@ wget https://datahub.io/core/nyse-other-listings/r/nyse-listed.csv #may need upd
 
 # collect symbol codes from nyse-listed.csv and wget the API url with an active API key:
 cat nyse-listed.csv | sed "1d" | awk -F ',' '{print $1}'  | 
-xargs -P 4 -n 1 -I {} wget --output-document "avdata/"{}".csv" "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&outputsize=full&apikey=$AV_KEY&datatype=csv&symbol="{}
+xargs -P 4 -n 1 -I {} wget --output-document "avdata/"{}".csv" "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=full&apikey=$AV_KEY&datatype=csv&symbol="{}
 
 ls avdata
 
