@@ -3,7 +3,7 @@
 
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as fun
-from pyspark.sql.types import StructType, StructField, StringType, DoubleType, IntegerType
+from pyspark.sql.types import StructType, StructField, StringType, FloatType, DoubleType, IntegerType
 
 
 spark = SparkSession.builder \
@@ -30,6 +30,7 @@ schema = StructType([ \
   
 df = spark.read.format("csv").options(header='True').schema(schema).load("nyctaxi/*")
 df.printSchema()
+df.show()
 
 #get a count of rows
 df.count()
@@ -39,6 +40,9 @@ df2 = df.withColumn("path", fun.input_file_name())
 regex_str = "[\/]([^\/]+[^\/]+)$" #regex to extract text after the last / or \
 df2 = df2.withColumn("sourcefile", fun.regexp_extract("path",regex_str,1))
 df2.show()
+
+# try filters
+df2.filter(fun.col("fare_amount") >= 1000)
 
 #quit pyspark
 quit()
