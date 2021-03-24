@@ -16,7 +16,8 @@ ls avdata
 
 #put avdata in the hadoop file system 
 #assumes hadoop configured and accessible via hdfs 
-hdfs dfs -put avdata
+hdfs dfs -mkdir -p avdata
+hdfs dfs -put avdata avdata
 
 # next up... build spark code to interact with data puddle
 
