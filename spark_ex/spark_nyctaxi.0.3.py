@@ -36,19 +36,22 @@ df.show()
 #dfsam = df.sample(0.001).collect()
 #dfsam.count()
 
-dfsam = sqlContext.createDataFrame(df.head(1000000), df.schema)
-dfsam.count()
+dfsam = sqlContext.createDataFrame(df.head(10000), df.schema)
+#dfsam.count()
 
 # resolve currency notation from string to float
-df2 = dfsam.select('trip_distance', \
-    'total_amount') \
-  .withColumn('total_amount', fun.regexp_replace('total_amount', '[$,]', '').cast('double'))
-df2.printSchema()
-df2.show(10, False)
-
 dfsam = dfsam \
   .withColumn('fare_amount', fun.regexp_replace('fare_amount', '[$,]', '').cast('double')) \
   .withColumn('tip_amount', fun.regexp_replace('tip_amount', '[$,]', '').cast('double')) \
   .withColumn('total_amount', fun.regexp_replace('total_amount', '[$,]', '').cast('double')) 
+
+dfsam.show(2)
+
+# handle dates AND time
+#  do we need fun.to_date
+dftime=dfsam.withColumn('pickup_time', fun.to_timestamp('pickup_datetime', "yyyy-MM-dd HH:mm:ss"))
+dftime=dftime.withColumn('pickup_hour', fun.hour("pickup_time")).show(2) 
+
+
 
 
