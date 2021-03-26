@@ -33,11 +33,11 @@ df.printSchema()
 df.show()
 
 #sample for easier access
-#dfsam = df.sample(0.001).collect()
+#dfsam = df.sample(0.001).collect() # a random sample
 #dfsam.count()
 
 dfsam = sqlContext.createDataFrame(df.head(10000), df.schema)
-#dfsam.count()
+dfsam.count()
 
 # resolve currency notation from string to float
 dfsam = dfsam \
@@ -50,8 +50,24 @@ dfsam.show(2)
 # handle dates AND time
 #  do we need fun.to_date
 dftime=dfsam.withColumn('pickup_time', fun.to_timestamp('pickup_datetime', "yyyy-MM-dd HH:mm:ss"))
-dftime=dftime.withColumn('pickup_hour', fun.hour("pickup_time")).show(2) 
+dftime=dftime.withColumn('pickup_hour', fun.hour("pickup_time"))
+dftime.show(2)
 
 
+#bin dftime.fun.col('pickup_hour') to classify 'day/night' as day between 0800 and 2000
+dftime.withColumn('daynight', \
+    fun.when((fun.col('pickup_hour') >= 8) & (fun.col('pickup_hour')<= 20), 'day'). \
+    otherwise('night')). \
+  select('pickup_hour', 'daynight'). \
+  show(99)
 
+# bin weekday weekend
+dftime=dftime.withColumn("dayofweek", fun.dayofweek("pickup_time"))
+dftime.withColumn('weekpart', \
+    fun.when((fun.col('dayofweek') == 7) | (fun.col('dayofweek') == 1), 1). \
+    otherwise(0)). \
+  select('weekpart', 'dayofweek'). \
+  show(99) # view
+  
+  
 
