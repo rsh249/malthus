@@ -70,4 +70,11 @@ dftime.withColumn('weekpart', \
   show(99) # view
   
   
+## statistics
+# https://spark.apache.org/docs/latest/ml-statistics.html
+
+
+
+  
+  
 
