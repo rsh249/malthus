@@ -38,5 +38,30 @@ df.withColumn('dayofyear', fun.dayofyear("timestamp")).show(2)
 # calculate the difference from the current date ('days_ago')
 df.withColumn('days_ago', fun.datediff(fun.current_date(), "timestamp")).show()
 
+
+
 ########################################################################
-#
+#group_by
+# summarize within group data
+df.groupBy("sourcefile").count().show(99)
+df.groupBy("sourcefile").min('open').show(99)
+df.groupBy("sourcefile").mean('open').show(99)
+df.groupBy("sourcefile").max('open','close').show(99)
+
+
+
+########################################################################
+#window functions
+from pyspark.sql.window import Window
+df=df.withColumn('days_ago', fun.datediff(fun.current_date(), "timestamp"))
+
+windowSpec  = Window.partitionBy("sourcefile").orderBy("days_ago")
+
+#see also lead
+dflag=df.withColumn("lag",fun.lag("open",14).over(windowSpec))
+dflag.select('sourcefile', 'lag', 'open').show(99)
+
+dflag.withColumn('twoweekdiff', fun.col('lag') - fun.col('open')).show() 
+
+
+

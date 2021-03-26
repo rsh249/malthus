@@ -8,7 +8,7 @@ from pyspark.sql.types import StructType, StructField, StringType, FloatType, Do
 
 spark = SparkSession.builder \
     .master("local[8]") \
-    .appName("avdata") \
+    .appName("nyctaxi") \
     .getOrCreate()
     
 # warning: It is a little slower to read the data with inferSchema='True'. 
@@ -32,17 +32,23 @@ df = spark.read.format("csv").options(header='True').schema(schema).load("nyctax
 df.printSchema()
 df.show()
 
-#get a count of rows
-df.count()
+#sample for easier access
+#dfsam = df.sample(0.001).collect()
+#dfsam.count()
 
-# get sourcefile name from input_file_name()
-df2 = df.withColumn("path", fun.input_file_name())
-regex_str = "[\/]([^\/]+[^\/]+)$" #regex to extract text after the last / or \
-df2 = df2.withColumn("sourcefile", fun.regexp_extract("path",regex_str,1))
-df2.show()
+dfsam = sqlContext.createDataFrame(df.head(1000000), df.schema)
+dfsam.count()
 
-# try filters
-df2.filter(fun.col("fare_amount") >= 1000)
+# resolve currency notation from string to float
+df2 = dfsam.select('trip_distance', \
+    'total_amount') \
+  .withColumn('total_amount', fun.regexp_replace('total_amount', '[$,]', '').cast('double'))
+df2.printSchema()
+df2.show(10, False)
 
-#quit pyspark
-quit()
+dfsam = dfsam \
+  .withColumn('fare_amount', fun.regexp_replace('fare_amount', '[$,]', '').cast('double')) \
+  .withColumn('tip_amount', fun.regexp_replace('tip_amount', '[$,]', '').cast('double')) \
+  .withColumn('total_amount', fun.regexp_replace('total_amount', '[$,]', '').cast('double')) 
+
+
