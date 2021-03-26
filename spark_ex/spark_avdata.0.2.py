@@ -5,7 +5,7 @@ from pyspark.sql import SparkSession
 import pyspark.sql.functions as fun
 
 spark = SparkSession.builder \
-    .master("local[6]") \
+    .master("local[8]") \
     .appName("avdata") \
     .getOrCreate()
     
@@ -31,7 +31,7 @@ filter1.show()
 filter1.count()
 
 
-filter1.coalesce(1).write.csv("spark_nyse_filter") 
+filter1.coalesce(1).write.csv("spark_nyse_filter2") 
 
 #quit pyspark
 quit()

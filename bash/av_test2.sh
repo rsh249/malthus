@@ -1,5 +1,3 @@
-# bash code to mine the Alpha Vantage API for long term daily stock market data
-
 source ./av_keys # get Alpha Vantage keys from key file or set environmental variables AV_KEY and AV_STUDENT KEY
 mkdir avdata
 
@@ -13,12 +11,3 @@ cat nyse-listed.csv | sed "1d" | awk -F ',' '{print $1}'  |
 xargs -P 4 -n 1 -I {} wget --output-document "avdata/"{}".csv" "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=full&apikey=$AV_KEY&datatype=csv&symbol="{}
 
 ls avdata
-
-#put avdata in the hadoop file system 
-#assumes hadoop configured and accessible via hdfs 
-hdfs dfs -mkdir -p avdata
-hdfs dfs -put avdata
-
-# next up... build spark code to interact with data puddle
-
-
