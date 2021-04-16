@@ -45,7 +45,7 @@ schema = StructType([ \
   ])
 df = sc.read.format("csv").options(header='True').schema(schema).load("nyctaxi/trip\ data/yellow*2019*01*")
 df.printSchema()
-df = sqlContext.createDataFrame(df.head(500000), df.schema) #not a random sample
+#df = sqlContext.createDataFrame(df.head(500000), df.schema) #not a random sample
 
 df.count()
 df.show()
@@ -83,7 +83,7 @@ vector_assembler = VectorAssembler(inputCols=pred_col, outputCol='features')#Cre
 pipeline = Pipeline(stages=[
            vector_assembler
 ])
-df_transformed = pipeline.fit(dffeat).transform(dfeat)
+df_transformed = pipeline.fit(dffeat).transform(dffeat)
 df_transformed.show()
 
 df_input = df_transformed.select('total_amount', 'features').withColumnRenamed('total_amount', 'label')
