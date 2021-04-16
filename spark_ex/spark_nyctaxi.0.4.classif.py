@@ -89,7 +89,7 @@ predictions = model.transform(testData)
 # Select example rows to display.
 predictions.select("prediction", "indexedLabel", "features").show(5)
 
-predictions.select("prediction", "indexedLabel", "features").corr('prediction', 'indexedLabel') # not so good
+predictions.select("prediction", "indexedLabel", "features").corr('prediction', 'indexedLabel')
 
 
 # Select (prediction, true label) and compute test error
