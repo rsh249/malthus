@@ -6,6 +6,7 @@ import numpy as np
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as fun
 from pyspark.sql.types import StructType, StructField, StringType, FloatType, DoubleType, IntegerType
+from pyspark.sql.functions import monotonically_increasing_id
 
 # pyspark.ml for clustering
 from pyspark.ml.clustering import KMeans
@@ -49,7 +50,7 @@ df = spark.read.format("csv"). \
   options(header='True'). \
   schema(schema). \
   load("../../dan606/nyctaxi/trip\ data/yellow*2019*")
-
+df = df.withColumn("id", monotonically_increasing_id())
 # handle dates AND time
 df=df.withColumn('pickup_time', fun.to_timestamp('tpep_pickup_datetime', "yyyy-MM-dd HH:mm:ss"))
 df=df.withColumn('pickup_hour', fun.hour("pickup_time"))
@@ -125,19 +126,26 @@ centers = model.clusterCenters()
 print("Cluster Centers: ")
 for center in centers:
     print(center)
-    
+
+
+
 # get predicted cluster ID for full model
 transformed = model.transform(df_transformed).select('id', 'prediction')
 rows = transformed.collect()
 print(rows[:3])
 
 # convert to dataframe
-df_pred = sqlContext.createDataFrame(rows)
+df_pred = spark.createDataFrame(rows)
 df_pred.show()
 
 #join with original
 df_pred = df_pred.join(df, 'id')
 df_pred.show()
+
+
+# this might also work:
+final = df.withColumn('kluster', fun.col(rows))
+final.show()
 
 # from here you can look at within 
 # and between cluster differences and 
