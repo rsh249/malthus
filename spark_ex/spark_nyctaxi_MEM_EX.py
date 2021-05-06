@@ -7,11 +7,12 @@ from pyspark.sql.types import StructType, StructField, StringType, FloatType, Do
 spark = SparkSession.builder \
   .master("local") \
   .config('spark.master', 'local[16]') \
-  .config('spark.executor.memory', '8g') \
+  .config('spark.executor.pyspark.memory', '8g') \
   .config('spark.app.name', 'nyctaxi') \
   .config('spark.cores.max', '16') \
   .config('spark.driver.memory','64g') \
   .getOrCreate()
+
 
 #Need to define schema for NYC taxi data.
 schema = StructType([ \
@@ -39,3 +40,11 @@ df = spark.read.format("csv"). \
   schema(schema). \
   load("../../dan606/nyctaxi/trip\ data/yellow*2019*")
 df.printSchema()
+df=df.withColumn('pickup_time', fun.to_timestamp('tpep_pickup_datetime', "yyyy-MM-dd HH:mm:ss"))
+df=df.withColumn('pickup_hour', fun.hour("pickup_time"))
+df=df.withColumn('pickup_month', fun.month("pickup_time"))
+
+#now do something to test the memory allocation
+df.count()
+df.select('pickup_hour').summary().show()
+
