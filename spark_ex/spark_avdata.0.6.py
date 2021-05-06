@@ -46,6 +46,10 @@ evaluator = ClusteringEvaluator()
 silhouette = evaluator.evaluate(predictions)
 print("Silhouette with squared euclidean distance = " + str(silhouette))
 
+cost = model.computeCost(dataset)
+print("Within Set Sum of Squared Errors = " + str(cost))
+
+
 # Shows the result.
 centers = model.clusterCenters()
 print("Cluster Centers: ")

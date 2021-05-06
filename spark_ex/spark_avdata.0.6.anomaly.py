@@ -8,6 +8,7 @@ from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as fun
 from pyspark.sql.types import StructType, StructField, StringType, FloatType, DoubleType, IntegerType
+from pyspark.sql.window import Window
 
 # set up the SparkSession
 spark = SparkSession.builder \
@@ -23,33 +24,23 @@ df = spark.read.format("csv"). \
   load("avdata/*")
 df.printSchema()
 
-# clustering
-#set up dataset object with features
-pred_col = ["open", "volume", "dividend_amount"]
-dffeat = df.na.drop()
-vector_assembler = VectorAssembler(inputCols=pred_col, outputCol='features') #Create pipeline and pass it to stages
-pipeline = Pipeline(stages=[
-           vector_assembler
-])
-df_transformed = pipeline.fit(dffeat).transform(dffeat)
+# get sourcefile name from input_file_name()
+df = df.withColumn("path", fun.input_file_name())
+regex_str = "[\/]([^\/]+[^\/]+)$" #regex to extract text after the last / or \
+df = df.withColumn("sourcefile", fun.regexp_extract("path",regex_str,1))
+df.show()
 
-# Trains a k-means model.
-kmeans = KMeans().setK(4).setSeed(1)
-model = kmeans.fit(df_transformed)
 
-# Make predictions
-predictions = model.transform(df_transformed)
+# convert time to days ago
+df=df.withColumn('timestamp', fun.to_date("timestamp"))
+df=df.withColumn('days_ago', fun.datediff(fun.current_date(), "timestamp")).show()
+df=df.withColumn('days_ago', fun.datediff(fun.current_date(), "timestamp"))
 
-# Evaluate clustering by computing Silhouette score
-evaluator = ClusteringEvaluator()
+# Calculate week over week change (14 day window change)
+windowSpec  = Window.partitionBy("sourcefile").orderBy("days_ago")
+dflag=df.withColumn("lag",fun.lag("open",14).over(windowSpec))
+dflag.select('sourcefile', 'lag', 'open').show(99)
+dflag.withColumn('twoweekdiff', fun.col('lag') - fun.col('open')).show() 
 
-silhouette = evaluator.evaluate(predictions)
-print("Silhouette with squared euclidean distance = " + str(silhouette))
-
-# Shows the result.
-centers = model.clusterCenters()
-print("Cluster Centers: ")
-for center in centers:
-    print(center)
-
-print(pred_col)
+# Within group (ticker) calculate anomaly time periods
+# filter for anomalous events (keep outliers)

@@ -1,16 +1,20 @@
 # spark for clustering
 
+import numpy as np
+
 # pyspark.sql
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as fun
 from pyspark.sql.types import StructType, StructField, StringType, FloatType, DoubleType, IntegerType
 
+# pyspark.ml for clustering
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.ml import Pipeline
 from pyspark.ml.feature import VectorAssembler
 
 # set up the SparkSession
+# this should be overkill even for the taxi data
 spark = SparkSession.builder \
   .master("local") \
   .config('spark.master', 'local[16]') \
@@ -45,17 +49,16 @@ df = spark.read.format("csv"). \
   options(header='True'). \
   schema(schema). \
   load("../../dan606/nyctaxi/trip\ data/yellow*2019*")
-df.printSchema()
+
 # handle dates AND time
 df=df.withColumn('pickup_time', fun.to_timestamp('tpep_pickup_datetime', "yyyy-MM-dd HH:mm:ss"))
 df=df.withColumn('pickup_hour', fun.hour("pickup_time"))
 df=df.withColumn('pickup_month', fun.month("pickup_time"))
-df.select('pickup_hour').summary().show()
 
 # clustering example
 
 #set up dataset object with features
-pred_col = ["pickup_hour", "pickup_month", "DOLocationID", "PULocationID", "trip_distance"]
+pred_col = ["pickup_hour", "pickup_month", "trip_distance", "congestion_surcharge"]
 dffeat = df.na.drop()
 vector_assembler = VectorAssembler(inputCols=pred_col, outputCol='features') #Create pipeline and pass it to stages
 pipeline = Pipeline(stages=[
@@ -64,7 +67,7 @@ pipeline = Pipeline(stages=[
 df_transformed = pipeline.fit(dffeat).transform(dffeat)
 
 # Trains a k-means model.
-kmeans = KMeans().setK(4).setSeed(1)
+kmeans = KMeans().setK(2).setSeed(1)
 model = kmeans.fit(df_transformed)
 
 # Make predictions
@@ -74,12 +77,74 @@ predictions = model.transform(df_transformed)
 evaluator = ClusteringEvaluator()
 
 silhouette = evaluator.evaluate(predictions)
+#values closer to 1 indicate good cluster fit (BUT beware skew within data)
 print("Silhouette with squared euclidean distance = " + str(silhouette))
+
+cost = model.computeCost(predictions)
+print("Within Set Sum of Squared Errors = " + str(cost))
 
 # Shows the result.
 centers = model.clusterCenters()
 print("Cluster Centers: ")
 for center in centers:
     print(center)
+    
+    
+# now test the optimal value of K
+# grab a coffee or a beer... this is going to take a while 
+
+subdf = df_transformed.sample(False, 0.01, seed=1)
+subdf.count()
+cost = np.zeros(20)
+for k in range(2,20):
+    print(k)
+    train = subdf.sample(False,0.1, seed=42)
+    test = subdf.sample(False, 0.1, seed=42)
+    kmeans = KMeans().setK(k).setSeed(1).setFeaturesCol("features")
+    model = kmeans.fit(train)
+    cost[k] = model.computeCost(test) 
+
+
+
+print(cost[2:20])
+
+# no access to a plot device, but if there was try:
+# import matplotlib.pyplot as plt
+# fig, ax = plt.subplots(1,1, figsize =(8,6))
+# ax.plot(range(2,20),cost[2:20])
+# ax.set_xlabel('k')
+# ax.set_ylabel('cost')
+
+
+# what is the best value of k? The smallest value of k that gets close to the minimum cost
+k = 10
+kmeans = KMeans().setK(k).setSeed(1).setFeaturesCol("features")
+model = kmeans.fit(df_transformed)
+centers = model.clusterCenters()
+
+print("Cluster Centers: ")
+for center in centers:
+    print(center)
+    
+# get predicted cluster ID for full model
+transformed = model.transform(df_transformed).select('id', 'prediction')
+rows = transformed.collect()
+print(rows[:3])
+
+# convert to dataframe
+df_pred = sqlContext.createDataFrame(rows)
+df_pred.show()
+
+#join with original
+df_pred = df_pred.join(df, 'id')
+df_pred.show()
+
+# from here you can look at within 
+# and between cluster differences and 
+# similarities to investigate the structure 
+# in this multivariate space.
+
+
+
 
 
