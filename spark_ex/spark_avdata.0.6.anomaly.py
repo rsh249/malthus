@@ -8,10 +8,10 @@ from pyspark.sql.window import Window
 # set up the SparkSession
 spark = SparkSession.builder \
   .master("local") \
-  .config('spark.master', 'local[16]') \
+  .config('spark.master', 'local[4]') \
   .config('spark.executor.memory', '4g') \
   .config('spark.app.name', 'avdata') \
-  .config('spark.cores.max', '16') \
+  .config('spark.cores.max', '4') \
   .config('spark.driver.memory','16g') \
   .getOrCreate()
 df = spark.read.format("csv"). \
