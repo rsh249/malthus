@@ -6,11 +6,11 @@ from pyspark.sql.types import StructType, StructField, StringType, FloatType, Do
 # set up the SparkSession
 spark = SparkSession.builder \
   .master("local") \
-  .config('spark.master', 'local[16]') \
+  .config('spark.master', 'local[8]') \
   .config('spark.executor.pyspark.memory', '8g') \
   .config('spark.app.name', 'nyctaxi') \
-  .config('spark.cores.max', '16') \
-  .config('spark.driver.memory','64g') \
+  .config('spark.cores.max', '8') \
+  .config('spark.driver.memory','36g') \
   .getOrCreate()
 
 
@@ -38,7 +38,7 @@ schema = StructType([ \
 df = spark.read.format("csv"). \
   options(header='True'). \
   schema(schema). \
-  load("../../dan606/nyctaxi/trip\ data/yellow*2019*")
+  load("../../dan606/nyctaxi/trip\ data/*2019*")
 df.printSchema()
 df=df.withColumn('pickup_time', fun.to_timestamp('tpep_pickup_datetime', "yyyy-MM-dd HH:mm:ss"))
 df=df.withColumn('pickup_hour', fun.hour("pickup_time"))

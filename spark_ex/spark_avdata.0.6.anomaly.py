@@ -1,8 +1,3 @@
-# spark for clustering
-from pyspark.ml.clustering import KMeans
-from pyspark.ml.evaluation import ClusteringEvaluator
-from pyspark.ml import Pipeline
-from pyspark.ml.feature import VectorAssembler
 
 # pyspark.sql
 from pyspark.sql import SparkSession, SQLContext
