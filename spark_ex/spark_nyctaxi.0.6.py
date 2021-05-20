@@ -1,7 +1,5 @@
 # spark for clustering
-
 import numpy as np
-
 # pyspark.sql
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as fun
